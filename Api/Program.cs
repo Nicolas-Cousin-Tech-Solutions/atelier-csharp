@@ -1,41 +1,65 @@
+using Application.DTO;
+using Application.Interfaces.Services;
+using Infrastructure;
+using Infrastructure.Middlewares;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithProcessId()
+    .Enrich.WithMachineName()
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware de Serilog
+app.UseSerilogRequestLogging();
+// Middleware de gestion d'erreurs
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapGet("/dossier/{id:guid}", async (Guid id, IDossierService dossierService, ILogger<Program> logger) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    logger.LogInformation("Starting Get By Id with {Id}", id);
+    var dossierDto = await dossierService.GetByIdAsync(id);
+    return dossierDto is { } ? Results.Ok(dossierDto) : Results.NotFound();
+});
 
-app.MapGet("/weatherforecast", () =>
+app.MapPost("/addDossier", async (CreateDossierDto dto, IDossierService dossierService) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var dossierDto = await dossierService.CreateAsync(new CreateDossierDto(
+                    dto.UniteProprietaire,
+                    dto.NatureDossier,
+                    dto.TypeDossier,
+                    dto.DateDesConstatations,
+                    dto.DateDeClotureDuPv,
+                    dto.DateEnregistrement
+                ));
+    return Results.Created($"/dossier/{dossierDto.Id}", dossierDto);
+});
+
+app.MapGet("/dossiers", async (IDossierService dossierService) =>
+{
+    var dossiers = await dossierService.GetAllAsync();
+    return Results.Ok(dossiers);
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
