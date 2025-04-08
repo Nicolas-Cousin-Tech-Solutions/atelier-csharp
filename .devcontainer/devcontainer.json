@@ -1,0 +1,14 @@
+{
+	"name": "C# (.NET)",
+    "dockerComposeFile": ["docker-compose.yml"],
+    "service": "devcontainer",
+    "workspaceFolder": "/workspace",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csdevkit"
+			]
+		}
+	},
+	"postCreateCommand": "dotnet dev-certs https --trust"
+}

@@ -1,0 +1,38 @@
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=database.db
+      - Serilog__WriteTo__0__Name=Seq
+      - Serilog__WriteTo__0__Args__serverUrl=http://seq:5000
+    ports:
+      - "21021:21021"
+    networks:
+      - devnetwork
+    depends_on:
+      - seq
+
+  seq:
+    image: datalust/seq:latest
+    restart: always
+    ports:
+      - "5000:80"
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - seq_data:/data
+    networks:
+      - devnetwork
+
+networks:
+  devnetwork:
+    driver: bridge
+
+volumes:
+  seq_data:
