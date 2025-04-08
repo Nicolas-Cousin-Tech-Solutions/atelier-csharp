@@ -9,7 +9,7 @@ namespace Domain.Entities
         public string Nom { get; set; } = string.Empty;
 
         // Navigation
-        public ICollection<Dossier> Dossiers { get; set; }
-        public ICollection<AgentVerbalisateur> AgentVerbalisateurs { get; set; }
+        public ICollection<Dossier> Dossiers { get; set; } = [];
+        public ICollection<AgentVerbalisateur> AgentVerbalisateurs { get; set; } = [];
     }
 }

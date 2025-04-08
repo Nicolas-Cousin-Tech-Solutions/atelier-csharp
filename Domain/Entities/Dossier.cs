@@ -24,10 +24,10 @@ namespace Domain.Entities
         public string UniteProprietaire { get; set; } = string.Empty;
 
         // Propriétés de navigation
-        public Service Service { get; set; }
-        public ICollection<Etablissement> Etablissements { get; set; }
-        public Transmission Transmission { get; set; }
-        public ICollection<AgentVerbalisateur> AgentVerbalisateurs { get; set; }
+        public Service? Service { get; set; }
+        public ICollection<Etablissement> Etablissements { get; set; } = [];
+        public Transmission? Transmission { get; set; }
+        public ICollection<AgentVerbalisateur> AgentVerbalisateurs { get; set; } = [];
 
         // Exemple de méthode de validation (les règles métiers pourront aussi être implémentées ailleurs)
         public IEnumerable<string> Validate()

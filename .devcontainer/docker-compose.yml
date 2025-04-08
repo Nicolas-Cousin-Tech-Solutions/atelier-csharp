@@ -8,13 +8,10 @@ services:
     command: sleep infinity
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Data Source=database.db
-      - Serilog__WriteTo__0__Name=Seq
-      - Serilog__WriteTo__0__Args__serverUrl=http://seq:5000
-    ports:
-      - "21021:21021"
     networks:
       - devnetwork
+    ports:
+      - "5249:5249"
     depends_on:
       - seq
 
@@ -23,6 +20,7 @@ services:
     restart: always
     ports:
       - "5000:80"
+      - "5341:5341"
     environment:
       - ACCEPT_EULA=Y
     volumes:

@@ -1,18 +1,25 @@
 using Application.DTO;
 using Application.Interfaces.Services;
 using Infrastructure;
+// using Infrastructure.Data;
 using Infrastructure.Middlewares;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithMachineName()
+    .Enrich.WithProcessId()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
-    .Enrich.WithEnvironmentName()
-    .Enrich.WithProcessId()
-    .Enrich.WithMachineName()
-    .CreateLogger();
+    .WriteTo.Seq("http://seq:5341")
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -35,6 +42,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// DataSeeder
+// using (var scope = app.Services.CreateScope())
+// {
+//    await DataSeeder.SeedAsync(scope.ServiceProvider);
+// }
 
 app.MapGet("/dossier/{id:guid}", async (Guid id, IDossierService dossierService, ILogger<Program> logger) =>
 {
