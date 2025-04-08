@@ -17,6 +17,6 @@ namespace Domain.Entities
         public DateTime? Date { get; set; }
 
         // Navigation
-        public Dossier Dossier { get; set; }
+        public Dossier? Dossier { get; set; }
     }
 }
