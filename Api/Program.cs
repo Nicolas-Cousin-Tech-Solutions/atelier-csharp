@@ -12,9 +12,10 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithEnvironmentName()
     .Enrich.WithMachineName()
     .Enrich.WithProcessId()
+    .Enrich.WithHeaderCorrelationId()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
-    .WriteTo.Seq("http://seq:5341")
+    .WriteTo.Seq("http://host.docker.internal:5341")
     .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);

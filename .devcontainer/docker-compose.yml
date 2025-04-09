@@ -8,8 +8,6 @@ services:
     command: sleep infinity
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    networks:
-      - devnetwork
     ports:
       - "5249:5249"
     depends_on:
@@ -19,18 +17,12 @@ services:
     image: datalust/seq:latest
     restart: always
     ports:
-      - "5000:80"
       - "5341:5341"
+      - "6600:80"
     environment:
       - ACCEPT_EULA=Y
     volumes:
       - seq_data:/data
-    networks:
-      - devnetwork
-
-networks:
-  devnetwork:
-    driver: bridge
 
 volumes:
   seq_data:
