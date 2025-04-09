@@ -1,8 +1,10 @@
 using Application.DTO;
-using Application.Interfaces.Services;
+using Application.Features.Dossiers.Commands;
+using Application.Features.Dossiers.Queries;
 using Infrastructure;
-// using Infrastructure.Data;
+using Infrastructure.Data;
 using Infrastructure.Middlewares;
+using MediatR;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -28,6 +30,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(
+        typeof(Application.AssemblyReference).Assembly));
+
 var app = builder.Build();
 
 // Middleware de Serilog
@@ -40,39 +46,42 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // DataSeeder
+    using (var scope = app.Services.CreateScope())
+    {
+        await DataSeeder.SeedAsync(scope.ServiceProvider);
+    }
 }
 
 app.UseHttpsRedirection();
 
-// DataSeeder
-// using (var scope = app.Services.CreateScope())
-// {
-//    await DataSeeder.SeedAsync(scope.ServiceProvider);
-// }
 
-app.MapGet("/dossier/{id:guid}", async (Guid id, IDossierService dossierService, ILogger<Program> logger) =>
+app.MapGet("/dossier/{id:guid}", async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
 {
-    logger.LogInformation("Starting Get By Id with {Id}", id);
-    var dossierDto = await dossierService.GetByIdAsync(id);
+    var dossierDto = await mediator.Send(new GetDossierByIdQuery(id), cancellationToken);
     return dossierDto is { } ? Results.Ok(dossierDto) : Results.NotFound();
 });
 
-app.MapPost("/addDossier", async (CreateDossierDto dto, IDossierService dossierService) =>
+app.MapPost("/addDossier", async (CreateDossierDto dto, IMediator mediator, CancellationToken cancellationToken) =>
 {
-    var dossierDto = await dossierService.CreateAsync(new CreateDossierDto(
-                    dto.UniteProprietaire,
-                    dto.NatureDossier,
-                    dto.TypeDossier,
-                    dto.DateDesConstatations,
-                    dto.DateDeClotureDuPv,
-                    dto.DateEnregistrement
-                ));
+    var createDossier = new CreateDossierCommand(
+        dto.UniteProprietaire,
+        dto.NatureDossier,
+        dto.TypeDossier,
+        dto.DateDesConstatations,
+        dto.DateDeClotureDuPv,
+        dto.DateEnregistrement
+    );
+    
+    var dossierDto = await mediator.Send(createDossier, cancellationToken);
+
     return Results.Created($"/dossier/{dossierDto.Id}", dossierDto);
 });
 
-app.MapGet("/dossiers", async (IDossierService dossierService) =>
+app.MapGet("/dossiers", async (IMediator mediator, CancellationToken cancellationToken) =>
 {
-    var dossiers = await dossierService.GetAllAsync();
+    var dossiers = await mediator.Send(new GetAllDossiersQuery(), cancellationToken);
     return Results.Ok(dossiers);
 });
 

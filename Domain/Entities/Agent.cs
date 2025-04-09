@@ -9,6 +9,6 @@ namespace Domain.Entities
         public string Nom { get; set; } = string.Empty;
 
         // Navigation
-        public ICollection<AgentVerbalisateur> AgentVerbalisateurs { get; set; }
+        public ICollection<AgentVerbalisateur> AgentVerbalisateurs { get; set; } = [];
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Application.DTO;
+using Domain.Entities;
+using MediatR;
 
 namespace Application.Features.Dossiers.Commands;
 
@@ -9,4 +11,4 @@ public record CreateDossierCommand(
     DateTime DateDesConstatations,
     DateTime? DateDeClotureDuPv,
     DateTime DateEnregistrement
-);
+) : IRequest<DossierDto>;
