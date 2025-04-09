@@ -15,6 +15,7 @@ Cette section décrit comment démarrer le conteneur Docker de datalust/seq.
       --restart unless-stopped \
       -e ACCEPT_EULA=Y \
       -p 5341:5341 \
+      -p 6600:80 \
       datalust/seq:latest
     ```
 
